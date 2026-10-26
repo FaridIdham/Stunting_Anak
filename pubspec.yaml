@@ -1,0 +1,47 @@
+name: stunting_detect_ai
+description: "Aplikasi Deteksi Stunting Anak menggunakan YOLO, Flutter, WHO LMS Z-Score, dan Realtime Database"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # State Management & Routing
+  provider: ^6.1.1
+  # Supabase Realtime Database & Auth & Storage
+  supabase_flutter: 2.3.4
+  # Firebase Realtime Database & Auth & Messaging
+  firebase_core: ^2.24.2
+  firebase_auth: ^4.16.0
+  firebase_database: ^10.4.0
+  firebase_messaging: ^14.7.10
+  flutter_local_notifications: ^17.0.0
+  # Computer Vision & Camera
+  camera: ^0.10.5+9
+  tflite_flutter: ^0.10.4
+  image: ^4.1.7
+  # Charts & UI/UX Full Colour
+  fl_chart: ^0.66.2
+  google_fonts: ^6.1.0
+  intl: ^0.19.0
+  uuid: ^4.3.3
+  flutter_animate: ^4.5.0
+  percent_indicator: ^4.2.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+dependency_overrides:
+  postgrest: 2.5.0
+
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/models/
+    - assets/images/

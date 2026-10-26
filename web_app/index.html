@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>StuntingGuard AI - Deteksi Stunting Anak (YOLO & WHO LMS)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="device-mobile">
+  <!-- TOP GLOBAL HEADER BAR -->
+  <header class="app-topbar">
+    <div class="topbar-left">
+      <div class="brand-badge">
+        <span class="brand-icon">🔬</span>
+        <div>
+          <span class="brand-title">StuntingGuard AI</span>
+          <span class="brand-sub">YOLOv11-Pose & WHO Anthro Realtime</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Active User & Role Display -->
+    <div class="topbar-center" id="active-user-badge">
+      <span class="role-pill pill-parent" id="header-role-pill">Akses: Orang Tua</span>
+      <span class="user-name-label" id="header-user-name">Siti Rahmawati (081234567890)</span>
+    </div>
+
+    <div class="topbar-right">
+      <!-- Device Viewport Switcher (HP, Tablet, Laptop/Desktop) -->
+      <div class="device-switcher" title="Ubah Mode Tampilan Perangkat">
+        <button class="device-btn active" id="btn-view-mobile" onclick="setDeviceView('mobile')">📱 HP</button>
+        <button class="device-btn" id="btn-view-tablet" onclick="setDeviceView('tablet')">📟 Tablet</button>
+        <button class="device-btn" id="btn-view-desktop" onclick="setDeviceView('desktop')">💻 Laptop</button>
+      </div>
+
+      <!-- Realtime Notification Bell -->
+      <button class="notif-btn" id="btn-open-notifs" onclick="toggleNotificationsModal()" title="Pusat Notifikasi">
+        <span class="notif-icon">🔔</span>
+        <span class="notif-count-badge" id="notif-badge">2</span>
+      </button>
+
+      <!-- Logout / Switch Account -->
+      <button class="logout-btn" onclick="navigateTo('login')">Keluar</button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="app-container" id="app-viewport">
+
+    <!-- ==================== SCREEN 1: REGISTRASI ANAK ==================== -->
+    <section class="screen active" id="screen-register">
+      <div class="card-glass register-card">
+        <div class="banner-gradient parent-banner">
+          <div class="banner-icon-circle">👶</div>
+          <div>
+            <h2>Registrasi Balita & Nomor WhatsApp / HP</h2>
+            <p>Daftarkan nomor HP/WhatsApp dan data balita Anda untuk mendapatkan akses login ke fitur utama deteksi stunting.</p>
+          </div>
+        </div>
+
+        <form id="form-register" onsubmit="handleRegistration(event)">
+          <!-- Tahap 1: Data Akun & Kontak -->
+          <div class="form-section-box section-parent">
+            <h3 class="section-title"><span class="section-num">1</span> Data Kontak & Akun (Untuk Login)</h3>
+            <div class="form-grid-2">
+              <div class="input-group">
+                <label>Nama Lengkap Orang Tua</label>
+                <input type="text" id="reg-parent-name" required placeholder="Nama Ibu / Ayah">
+              </div>
+              <div class="input-group">
+                <label>Nomor WhatsApp / HP Aktif <span class="req-star">*</span></label>
+                <input type="tel" id="reg-parent-phone" required placeholder="Contoh: 081234567890">
+                <small class="field-hint">Nomor ini yang akan digunakan untuk login ke menu utama.</small>
+              </div>
+              <div class="input-group">
+                <label>Alamat Email</label>
+                <input type="email" id="reg-parent-email" required placeholder="email@domain.com">
+              </div>
+              <div class="input-group">
+                <label>Kata Sandi / PIN</label>
+                <input type="password" id="reg-parent-password" required placeholder="Minimal 6 karakter">
+              </div>
+            </div>
+          </div>
+
+          <!-- Tahap 2: Data Balita -->
+          <div class="form-section-box section-child">
+            <h3 class="section-title"><span class="section-num">2</span> Data Balita yang Dipantau</h3>
+            <div class="form-grid-2">
+              <div class="input-group">
+                <label>Nama Lengkap Balita</label>
+                <input type="text" id="reg-child-name" required placeholder="Nama Balita">
+              </div>
+              <div class="input-group">
+                <label>NIK Anak / No. Akta</label>
+                <input type="text" id="reg-child-nik" required placeholder="16 digit NIK">
+              </div>
+              <div class="input-group">
+                <label>Jenis Kelamin</label>
+                <div class="gender-radio-group">
+                  <label class="gender-chip active" id="chip-male">
+                    <input type="radio" name="reg-gender" value="L" checked onchange="updateGenderChip(this)">
+                    👦 Laki-laki
+                  </label>
+                  <label class="gender-chip" id="chip-female">
+                    <input type="radio" name="reg-gender" value="P" onchange="updateGenderChip(this)">
+                    👧 Perempuan
+                  </label>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Tanggal Lahir</label>
+                <input type="date" id="reg-child-dob" required>
+              </div>
+              <div class="input-group">
+                <label>Berat Lahir (kg)</label>
+                <input type="number" step="0.1" id="reg-child-birth-weight" required placeholder="Contoh: 3.1">
+              </div>
+              <div class="input-group">
+                <label>Panjang Lahir (cm)</label>
+                <input type="number" step="0.1" id="reg-child-birth-height" required placeholder="Contoh: 49.5">
+              </div>
+              <div class="input-group span-2">
+                <label>Nama Posyandu / Puskesmas Terdekat</label>
+                <input type="text" id="reg-posyandu" required placeholder="Nama Posyandu / Puskesmas">
+              </div>
+              <div class="input-group span-2">
+                <label>Alamat Domisili</label>
+                <input type="text" id="reg-address" required placeholder="Alamat Lengkap Domisili">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-action-row">
+            <button type="submit" class="btn-primary-gradient btn-full">
+              <span>💾 Daftarkan Balita & Lanjut ke Login</span>
+              <span class="btn-arrow">→</span>
+            </button>
+          </div>
+          <div class="login-redirect-text">
+            Sudah mendaftarkan nomor HP? <a href="#" onclick="navigateTo('login')">Masuk ke Fitur Login</a>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 2: LOGIN VIA NOMOR HP / WHATSAPP ==================== -->
+    <section class="screen" id="screen-login">
+      <div class="card-glass login-card">
+        <div class="login-header-icon" id="login-role-icon">📱</div>
+        <h2 class="login-title">Masuk StuntingGuard AI</h2>
+        <p class="login-subtitle">Gunakan nomor HP atau WhatsApp yang sudah terdaftar</p>
+
+        <!-- Role Selector Buttons Full Colour -->
+        <div class="role-selector-bar">
+          <button type="button" class="role-tab active parent-tab" onclick="switchLoginRole('parent')">
+            <span class="role-tab-icon">👨‍👩‍👦</span>
+            <span class="role-tab-title">Orang Tua</span>
+            <span class="role-tab-badge">Mobile</span>
+          </button>
+          <button type="button" class="role-tab expert-tab" onclick="switchLoginRole('expert')">
+            <span class="role-tab-icon">👨‍⚕️</span>
+            <span class="role-tab-title">Dokter Ahli</span>
+            <span class="role-tab-badge">Web & Mob</span>
+          </button>
+          <button type="button" class="role-tab admin-tab" onclick="switchLoginRole('admin')">
+            <span class="role-tab-icon">🏛️</span>
+            <span class="role-tab-title">Admin</span>
+            <span class="role-tab-badge">Web & Mob</span>
+          </button>
+        </div>
+
+        <!-- Banner Peringatan Jika Nomor Belum Terdaftar -->
+        <div class="login-error-alert" id="login-error-banner" style="display:none;">
+          <span class="alert-icon">🚫</span>
+          <div class="alert-content">
+            <strong>Akses Masuk Ditolak!</strong>
+            <p id="login-error-text">Nomor HP / WhatsApp belum terdaftar di sistem. Anda tidak dapat lanjut ke menu utama sebelum melakukan registrasi balita.</p>
+            <button type="button" class="btn-alert-register" onclick="navigateTo('register')">👉 Registrasi Balita Sekarang</button>
+          </div>
+        </div>
+
+        <form id="form-login" onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label>Nomor WhatsApp / HP Terdaftar <span class="req-star">*</span></label>
+            <div class="input-with-icon">
+              <span class="input-icon">📞</span>
+              <input type="tel" id="login-phone" required placeholder="08xxxxxxxxxx">
+              <span class="input-wa-badge">WhatsApp</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Kata Sandi / PIN</label>
+            <div class="input-with-icon">
+              <span class="input-icon">🔒</span>
+              <input type="password" id="login-password" required placeholder="Masukkan kata sandi">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary-gradient btn-full" id="btn-login-submit">
+            <span>Masuk ke Fitur Utama</span>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <div class="login-footer-actions">
+            <button type="button" class="btn-text" onclick="navigateTo('register')">
+              Belum terdaftar? Daftarkan Balita & Nomor HP
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 3: FITUR UTAMA ORANG TUA ==================== -->
+    <section class="screen" id="screen-parent">
+      <div class="parent-dashboard-layout">
+        <!-- Balita Hero Card -->
+        <div class="child-hero-card">
+          <div class="child-avatar-big" id="parent-child-avatar">👦</div>
+          <div class="child-hero-info">
+            <div class="child-name-row">
+              <h2 id="parent-child-name">Muhammad Rayyan</h2>
+              <span class="badge-pill" id="parent-child-nik">NIK: 320128...</span>
+            </div>
+            <p id="parent-child-meta">Usia: 18 Bulan • Posyandu Mawar Sejahtera</p>
+            <div class="child-metric-pills">
+              <span class="metric-pill">⚖️ Lahir: <strong id="parent-hero-weight">3.1 kg</strong></span>
+              <span class="metric-pill">📏 Panjang: <strong id="parent-hero-height">49.5 cm</strong></span>
+              <span class="metric-pill">🚻 Kelamin: <strong id="parent-hero-gender">Laki-laki</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Utama: Scan YOLO Stunting -->
+        <div class="yolo-scan-launcher" onclick="navigateTo('yolo-scan')">
+          <div class="launcher-icon-box">📷</div>
+          <div class="launcher-text">
+            <h3>Pindai Stunting dengan YOLO AI</h3>
+            <p>Mendukung Kamera HP (Depan/Belakang) dan Kamera Laptop.</p>
+          </div>
+          <div class="launcher-arrow">→</div>
+        </div>
+
+        <!-- Status Terkini & Kurva Z-Score Ringkas -->
+        <div class="current-status-card" id="parent-status-card">
+          <div class="status-card-header">
+            <h4>Status Gizi & Tumbuh Kembang Terkini</h4>
+            <span class="status-pill status-stunted" id="parent-status-pill">Stunting (Pendek)</span>
+          </div>
+          <div class="status-stats-grid">
+            <div class="status-stat-item">
+              <span class="stat-icon">📏</span>
+              <span class="stat-val" id="parent-stat-height">76.5 cm</span>
+              <span class="stat-lbl">Tinggi Badan (YOLO)</span>
+            </div>
+            <div class="status-stat-item">
+              <span class="stat-icon">📊</span>
+              <span class="stat-val" id="parent-stat-haz">-2.12 SD</span>
+              <span class="stat-lbl">Z-Score TB/U</span>
+            </div>
+            <div class="status-stat-item">
+              <span class="stat-icon">⚖️</span>
+              <span class="stat-val" id="parent-stat-weight">9.2 kg</span>
+              <span class="stat-lbl">Berat Badan</span>
+            </div>
+          </div>
+          <div class="doctor-validation-banner" id="parent-doc-banner">
+            <span class="doc-icon">👨‍⚕️</span>
+            <div class="doc-text">
+              <strong>Catatan Dokter:</strong>
+              <span id="parent-doc-note">"Diagnosis terverifikasi. Tingkatkan asupan telur 2 butir/hari & jadwalkan timbang ulang 14 hari."</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Fitur Full Colour -->
+        <h3 class="section-header-title">Menu Layanan Terpadu</h3>
+        <div class="feature-grid-color">
+          <div class="feature-tile tile-cyan" onclick="navigateTo('yolo-scan')">
+            <div class="tile-icon-wrap">🤖</div>
+            <div class="tile-title">Kamera YOLO AI</div>
+            <div class="tile-sub">Semua Jenis Kamera</div>
+          </div>
+          <div class="feature-tile tile-purple" onclick="navigateTo('growth-chart')">
+            <div class="tile-icon-wrap">📈</div>
+            <div class="tile-title">Kurva KMS WHO</div>
+            <div class="tile-sub">Grafik Pertumbuhan</div>
+          </div>
+          <div class="feature-tile tile-orange" onclick="navigateTo('nutrition')">
+            <div class="tile-icon-wrap">🍳</div>
+            <div class="tile-title">Gizi & MPASI</div>
+            <div class="tile-sub">Menu Protein Tinggi</div>
+          </div>
+          <div class="feature-tile tile-blue" onclick="navigateTo('consultation')">
+            <div class="tile-icon-wrap">🩺</div>
+            <div class="tile-title">Konsul Dokter</div>
+            <div class="tile-sub">Tanya Spesialis Anak</div>
+          </div>
+        </div>
+
+        <!-- Riwayat Pemeriksaan -->
+        <div class="history-section">
+          <div class="history-header">
+            <h3>Riwayat Pengukuran Balita</h3>
+            <span class="badge-count" id="history-count">2 Data</span>
+          </div>
+          <div class="history-list" id="parent-history-list">
+            <!-- Dynamically populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 4: KAMERA YOLO STUNTING SCAN (SEMUA JENIS KAMERA) ==================== -->
+    <section class="screen" id="screen-yolo-scan">
+      <div class="yolo-scan-view">
+        <div class="scan-top-controls">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">← Kembali</button>
+          
+          <!-- Fitur Ganti Kamera Universal (Kamera HP Depan/Belakang & Laptop Webcam) -->
+          <div class="camera-switch-controls">
+            <button class="btn-switch-camera" id="btn-switch-camera" onclick="switchCameraSource()" title="Ganti Kamera Depan / Belakang">
+              🔄 <span id="camera-label-mode">Kamera Laptop / HP</span>
+            </button>
+            <select id="camera-select-dropdown" class="camera-dropdown" onchange="onCameraDeviceSelected(this.value)" title="Pilih Perangkat Kamera">
+              <!-- Dynamically populated by navigator.mediaDevices -->
+            </select>
+          </div>
+
+          <div class="scan-model-badge">AI: YOLOv11-Pose</div>
+        </div>
+
+        <!-- Live Viewport Canvas Container -->
+        <div class="viewport-canvas-container" id="camera-viewport">
+          <!-- Video element for live webcam & mobile camera -->
+          <video id="webcam-video" autoplay playsinline muted></video>
+          <!-- Canvas for YOLO pose skeleton lines & bounding box -->
+          <canvas id="yolo-canvas"></canvas>
+          
+          <!-- Animated Laser Scan Bar -->
+          <div class="scanner-laser" id="scanner-laser"></div>
+
+          <!-- Position Guide Box -->
+          <div class="scanner-overlay-guide">
+            <div class="guide-box">
+              <span class="guide-corner tl"></span>
+              <span class="guide-corner tr"></span>
+              <span class="guide-corner bl"></span>
+              <span class="guide-corner br"></span>
+              <span class="guide-text" id="camera-status-text">Kamera Aktif • Pastikan Balita Terlihat Penuh</span>
+            </div>
+          </div>
+
+          <!-- Realtime Landmark Detection Indicators -->
+          <div class="live-indicators-row">
+            <span class="ind-pill">Head: 98%</span>
+            <span class="ind-pill">Spine: 96%</span>
+            <span class="ind-pill">Hips: 95%</span>
+            <span class="ind-pill">Heels: 94%</span>
+          </div>
+        </div>
+
+        <!-- Manual / Sample Photo Selector for Testing -->
+        <div class="sample-photo-row">
+          <span class="sample-label">Opsi Pengambilan:</span>
+          <button class="btn-sample" onclick="loadSampleImage('stunted')">Foto Balita Stunting</button>
+          <button class="btn-sample" onclick="loadSampleImage('normal')">Foto Balita Normal</button>
+          <label class="btn-sample btn-upload-label">
+            📁 Unggah Foto Galeri
+            <input type="file" id="upload-image-input" accept="image/*" onchange="handleImageUpload(event)" style="display:none">
+          </label>
+        </div>
+
+        <!-- Bottom Scan Action -->
+        <div class="scan-bottom-bar">
+          <button class="btn-capture-yolo" id="btn-run-yolo" onclick="runYoloInference()" title="Ambil Foto & Analisis YOLO">
+            <div class="shutter-inner">📸</div>
+          </button>
+          <p class="scan-prompt">Ketuk tombol untuk Analisis YOLO & Hitung Z-Score WHO</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 5: HASIL DETEKSI STUNTING ==================== -->
+    <section class="screen" id="screen-result">
+      <div class="card-glass result-card">
+        <div class="result-status-banner" id="result-status-banner">
+          <div class="result-status-icon" id="result-status-icon">⚠️</div>
+          <h2 id="result-status-title">Stunting (Pendek)</h2>
+          <p id="result-patient-name">Pasien: Muhammad Rayyan (18 Bulan)</p>
+          
+          <!-- Z-Score Gauge Bar -->
+          <div class="gauge-container">
+            <div class="gauge-header">
+              <span>Z-Score Antropometri (TB/U):</span>
+              <strong id="result-haz-val">-2.12 SD</strong>
+            </div>
+            <div class="gauge-bar-track">
+              <div class="gauge-zone zone-severe" title="Sangat Pendek / Stunting Berat (<-3 SD)"></div>
+              <div class="gauge-zone zone-stunted" title="Pendek / Stunting (-3 s.d -2 SD)"></div>
+              <div class="gauge-zone zone-normal" title="Normal (-2 s.d +2 SD)"></div>
+              <div class="gauge-zone zone-tall" title="Tinggi (> +2 SD)"></div>
+              <div class="gauge-indicator-pin" id="gauge-pin" style="left: 28%;">▼</div>
+            </div>
+            <div class="gauge-labels">
+              <span>-3 SD (Parah)</span>
+              <span>-2 SD (Batas)</span>
+              <span>0 (Median WHO)</span>
+              <span>+2 SD (Tinggi)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid Rincian Hasil -->
+        <div class="result-metrics-grid">
+          <div class="result-metric-card">
+            <span class="m-icon">📏</span>
+            <strong id="res-metric-height">76.5 cm</strong>
+            <span>Tinggi Badan (YOLO)</span>
+          </div>
+          <div class="result-metric-card">
+            <span class="m-icon">⚖️</span>
+            <strong id="res-metric-weight">9.2 kg</strong>
+            <span>Berat Badan</span>
+          </div>
+          <div class="result-metric-card">
+            <span class="m-icon">🎯</span>
+            <strong id="res-metric-conf">97.4%</strong>
+            <span>Akurasi Model YOLO</span>
+          </div>
+          <div class="result-metric-card">
+            <span class="m-icon">🩺</span>
+            <strong id="res-metric-status">Pending</strong>
+            <span>Validasi Dokter Ahli</span>
+          </div>
+        </div>
+
+        <!-- Rekomendasi Gizi Intervensi -->
+        <div class="recommendations-box">
+          <h3>🥗 Rekomendasi Intervensi Gizi Klinis AI</h3>
+          <ul class="rec-list" id="result-rec-list">
+            <!-- Dynamically populated -->
+          </ul>
+        </div>
+
+        <!-- Tombol Tindakan Hasil -->
+        <div class="result-actions">
+          <button class="btn-primary-gradient btn-full" onclick="showDoctorConsultModal()">
+            💬 Konsultasikan Hasil ke Dokter Spesialis Anak
+          </button>
+          <button class="btn-secondary btn-full" onclick="navigateTo('parent')">
+            Kembali ke Dashboard Utama
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 6: FITUR UTAMA DOKTER / PAKAR ==================== -->
+    <!-- ==================== SCREEN 6: FITUR UTAMA DOKTER / PAKAR ==================== -->
+    <section class="screen" id="screen-expert">
+      <div class="expert-dashboard-container">
+        <!-- Top Navigation Bar Dokter: Tombol Kembali, Tambah Data, Buka Database -->
+        <div class="role-action-nav-bar">
+          <div class="nav-bar-left">
+            <button class="btn-action-back" onclick="navigateTo('login')">
+              ← Kembali ke Login
+            </button>
+            <span class="nav-role-badge expert-badge">👨‍⚕️ Portal Dokter Spesialis Anak</span>
+          </div>
+          <div class="nav-bar-right">
+            <button class="btn-db-open" onclick="openDatabaseEditorModal()">
+              ⚡ Supabase Realtime Database
+            </button>
+          </div>
+        </div>
+
+        <!-- Doctor Profile Card -->
+        <div class="expert-top-header">
+          <div class="expert-identity">
+            <div class="expert-avatar">👨‍⚕️</div>
+            <div>
+              <h2 id="expert-name-title">dr. Farhan Malik, Sp.A (K)</h2>
+              <p id="expert-meta-subtitle">Pakar Ahli & Dokter Spesialis Anak • SIP: 440/129/DINKES/2024 • WhatsApp: 081198765432</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button class="btn-action-edit" style="padding: 8px 14px; font-size: 13px; font-weight:700;" onclick="openEditDoctorModal('self')">
+              ✏️ Edit Profil Saya
+            </button>
+            <div class="expert-platform-badge">💻 Portal Dokter & Pakar Ahli</div>
+          </div>
+        </div>
+
+        <!-- KPI Rangkuman Dokter -->
+        <div class="doctor-kpi-row">
+          <div class="kpi-card-colored kpi-blue">
+            <span class="kpi-icon">📋</span>
+            <div class="kpi-data">
+              <h3 id="doc-kpi-total">3 Kasus</h3>
+              <p>Total Laporan Masuk</p>
+            </div>
+          </div>
+          <div class="kpi-card-colored kpi-orange">
+            <span class="kpi-icon">⏳</span>
+            <div class="kpi-data">
+              <h3 id="doc-kpi-pending">1 Pasien</h3>
+              <p>Menunggu Validasi</p>
+            </div>
+          </div>
+          <div class="kpi-card-colored kpi-green">
+            <span class="kpi-icon">✅</span>
+            <div class="kpi-data">
+              <h3 id="doc-kpi-verified">2 Pasien</h3>
+              <p>Sudah Terverifikasi</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Antrean Pemeriksaan Stunting Realtime -->
+        <div class="validation-queue-container">
+          <div class="queue-header-row">
+            <div>
+              <h3>Antrean Validasi Klinis Deteksi Stunting (Realtime)</h3>
+              <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Gunakan tombol Edit atau Hapus pada setiap kartu pasien untuk manipulasi data realtime.</p>
+            </div>
+            <div class="queue-filters">
+              <button class="q-filter active" onclick="filterDoctorQueue('ALL')">Semua</button>
+              <button class="q-filter" onclick="filterDoctorQueue('PENDING')">Perlu Validasi</button>
+              <button class="q-filter" onclick="filterDoctorQueue('APPROVED')">Terverifikasi</button>
+            </div>
+          </div>
+
+          <div class="queue-list" id="doctor-queue-list">
+            <!-- Populated dynamically by JS with Edit and Hapus buttons -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 7: FITUR UTAMA ADMIN ==================== -->
+    <section class="screen" id="screen-admin">
+      <div class="admin-dashboard-container">
+        <!-- Top Navigation Bar Admin: Tombol Kembali, Tambah Data, Buka Database -->
+        <div class="role-action-nav-bar">
+          <div class="nav-bar-left">
+            <button class="btn-action-back" onclick="navigateTo('login')">
+              ← Kembali ke Login
+            </button>
+            <span class="nav-role-badge admin-badge">🏛️ Portal Administrator Wilayah</span>
+          </div>
+          <div class="nav-bar-right">
+            <button class="btn-db-open" onclick="openDatabaseEditorModal()">
+              ⚡ Supabase Realtime Database
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-top-header">
+          <div class="admin-identity">
+            <div class="admin-avatar">🏛️</div>
+            <div>
+              <h2>Administrator Dinas Kesehatan</h2>
+              <p>Pusat Pengendalian Stunting Terpadu Nasional (Web & Mobile)</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-broadcast-open" onclick="openBroadcastModal()">
+              📢 Broadcast Notifikasi Massal
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Grid Admin Realtime -->
+        <div class="admin-kpi-grid">
+          <div class="admin-kpi-card">
+            <span class="adm-icon">👶</span>
+            <h3 id="adm-kpi-children">2 Balita</h3>
+            <p>Total Balita Terdaftar</p>
+          </div>
+          <div class="admin-kpi-card">
+            <span class="adm-icon">📷</span>
+            <h3 id="adm-kpi-scans">3 Kali</h3>
+            <p>Total Pemindaian YOLO</p>
+          </div>
+          <div class="admin-kpi-card">
+            <span class="adm-icon">⚠️</span>
+            <h3 id="adm-kpi-stunted" style="color: #ef4444;">33.3%</h3>
+            <p>Prevalensi Stunting Wilayah</p>
+          </div>
+          <div class="admin-kpi-card">
+            <span class="adm-icon">🏥</span>
+            <h3 id="adm-kpi-posyandu">1 Posyandu</h3>
+            <p>Posyandu Mawar Sejahtera</p>
+          </div>
+        </div>
+
+        <!-- Tabel Daftar Balita & Posyandu -->
+        <div class="admin-table-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="margin: 0;">Data Balita & Riwayat Pemeriksaan Posyandu</h3>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">Setiap baris dilengkapi Tombol Edit dan Tombol Hapus yang tersambung ke database realtime.</p>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama Balita</th>
+                  <th>NIK</th>
+                  <th>Usia</th>
+                  <th>Jenis Kelamin</th>
+                  <th>Orang Tua (No. WhatsApp)</th>
+                  <th>Posyandu</th>
+                  <th>Status Terkini</th>
+                  <th>Aksi Realtime (Edit / Hapus)</th>
+                </tr>
+              </thead>
+              <tbody id="admin-children-tbody">
+                <!-- Dynamically populated with Edit and Hapus buttons -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabel Kedua: Data Pakar Ahli & Dokter Spesialis -->
+        <div class="admin-table-card" style="margin-top: 24px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <h3 style="margin: 0;">👨‍⚕️ Manajemen Data Pakar Ahli & Dokter Spesialis</h3>
+              <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">Kelola data pakar medis stunting terdaftar: Tambah Pakar Baru, Edit Profil & Keahlian, dan Hapus Tenaga Pakar.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-primary-gradient" style="padding: 8px 16px; font-size: 13px;" onclick="openAddDoctorModal()">
+                + Tambah Data Pakar / Dokter Ahli
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Nama Pakar / Dokter Ahli</th>
+                  <th>NIDN / SIP</th>
+                  <th>Spesialisasi & Bidang Keahlian</th>
+                  <th>Institusi / Universitas / RS</th>
+                  <th>No. WhatsApp Terdaftar</th>
+                  <th>Status Akun</th>
+                  <th>Aksi Realtime (Edit / Hapus)</th>
+                </tr>
+              </thead>
+              <tbody id="admin-doctors-tbody">
+                <!-- Dynamically populated with Edit and Hapus buttons for experts -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 8: KURVA PERTUMBUHAN KMS WHO ==================== -->
+    <section class="screen" id="screen-growth-chart">
+      <div class="card-glass chart-screen-card">
+        <div class="chart-header">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">← Kembali</button>
+          <h2>Kurva Pertumbuhan KMS (Standar WHO 2006)</h2>
+        </div>
+        <p class="chart-subtitle">Panjang/Tinggi Badan Menurut Umur (PB/U) Standar Kemenkes RI No. 2 Th 2020</p>
+
+        <!-- SVG Line Chart WHO -->
+        <div class="svg-chart-container">
+          <svg viewBox="0 0 600 320" class="growth-svg" id="growth-chart-svg">
+            <!-- Grid Lines -->
+            <line x1="50" y1="30" x2="550" y2="30" stroke="#E2E8F0" stroke-width="1"/>
+            <line x1="50" y1="90" x2="550" y2="90" stroke="#E2E8F0" stroke-width="1"/>
+            <line x1="50" y1="150" x2="550" y2="150" stroke="#E2E8F0" stroke-width="1"/>
+            <line x1="50" y1="210" x2="550" y2="210" stroke="#E2E8F0" stroke-width="1"/>
+            <line x1="50" y1="270" x2="550" y2="270" stroke="#E2E8F0" stroke-width="1"/>
+
+            <!-- WHO Curves -->
+            <path d="M 50 220 Q 250 140 550 50" fill="none" stroke="#6366F1" stroke-width="2" stroke-dasharray="4"/>
+            <path d="M 50 240 Q 250 160 550 80" fill="none" stroke="#10B981" stroke-width="3"/>
+            <path d="M 50 260 Q 250 185 550 120" fill="none" stroke="#F59E0B" stroke-width="2.5"/>
+            <path d="M 50 280 Q 250 210 550 150" fill="none" stroke="#EF4444" stroke-width="2.5"/>
+
+            <!-- Child Data Points (Plotted) -->
+            <circle cx="200" cy="195" r="7" fill="#06B6D4" stroke="#FFF" stroke-width="2"/>
+            <text x="212" y="195" font-size="11" font-weight="bold" fill="#0F172A">Rayyan (18 Bln): 76.5 cm (HAZ -2.12)</text>
+          </svg>
+        </div>
+
+        <div class="chart-legend">
+          <span class="legend-item"><span class="leg-color bg-green"></span> Median Standar WHO (0 SD)</span>
+          <span class="legend-item"><span class="leg-color bg-amber"></span> Batas Stunting (-2 SD)</span>
+          <span class="legend-item"><span class="leg-color bg-red"></span> Stunting Berat (-3 SD)</span>
+          <span class="legend-item"><span class="leg-color bg-cyan"></span> Titik Pengukuran Balita</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 9: GIZI & MPASI TINGGI PROTEIN HEWANI ==================== -->
+    <section class="screen" id="screen-nutrition">
+      <div class="feature-screen-container">
+        <!-- Top Navigation Bar dengan Tombol Kembali yang sangat jelas -->
+        <div class="feature-top-nav">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">
+            ← Kembali ke Menu Utama
+          </button>
+          <div class="feature-nav-badge badge-orange">
+            🍳 Gizi & MPASI Anti-Stunting
+          </div>
+        </div>
+
+        <!-- Banner Edukasi Utama -->
+        <div class="nutrition-hero-card">
+          <div class="nutrition-hero-icon">🥚</div>
+          <div>
+            <h2>Panduan MPASI Tinggi Protein Hewani</h2>
+            <p>Protein hewani (Telur, Ikan, Hati Ayam, Daging) memiliki asam amino esensial lengkap yang terbukti secara klinis mencegah stunting dan merangsang lempeng pertumbuhan tulang balita.</p>
+          </div>
+        </div>
+
+        <!-- Tab / Kategori Menu -->
+        <div class="nutrition-grid-2">
+          <!-- Kartu Menu 1: Hati Ayam & Santan Gurih -->
+          <div class="recipe-card">
+            <div class="recipe-badge">Kaya Zat Besi & Seng (Zinc)</div>
+            <div class="recipe-header">
+              <span class="recipe-emoji">🥣</span>
+              <div>
+                <h4>Bubur Hati Ayam Santan Gurih</h4>
+                <p class="recipe-sub">Usia 6 - 24 Bulan • Tekstur Lembut</p>
+              </div>
+            </div>
+            <div class="recipe-nutri-pills">
+              <span class="pill-nutri">Kalori: 145 kkal</span>
+              <span class="pill-nutri">Protein: 8.2 g</span>
+              <span class="pill-nutri">Zat Besi: 4.8 mg</span>
+            </div>
+            <p class="recipe-desc"><strong>Bahan:</strong> 30g beras, 35g hati ayam segar kukus, 20ml santan kelapa matang, 1/2 wortel parut, 1 sdt minyak kelapa.</p>
+            <p class="recipe-tip">💡 <em>Hati ayam merupakan sumber zat besi heme terbaik untuk mencegah anemia mikrositik penyebab terhambatnya tinggi badan anak.</em></p>
+          </div>
+
+          <!-- Kartu Menu 2: Orak-Arik Telur & Ikan Kembung -->
+          <div class="recipe-card">
+            <div class="recipe-badge" style="background:#e0f2fe; color:#0369a1;">Omega-3 & DHA Tinggi</div>
+            <div class="recipe-header">
+              <span class="recipe-emoji">🐟</span>
+              <div>
+                <h4>Tim Nasi Ikan Kembung & Telur</h4>
+                <p class="recipe-sub">Usia 8 - 24 Bulan • Kaya Kalsium</p>
+              </div>
+            </div>
+            <div class="recipe-nutri-pills">
+              <span class="pill-nutri">Kalori: 175 kkal</span>
+              <span class="pill-nutri">Protein: 9.5 g</span>
+              <span class="pill-nutri">DHA: 120 mg</span>
+            </div>
+            <p class="recipe-desc"><strong>Bahan:</strong> 40g nasi lembek, 30g daging ikan kembung cincang halus tanpa duri, 1 butir telur puyuh/ayam, kaldu tulang sumsum.</p>
+            <p class="recipe-tip">💡 <em>Ikan kembung mengandung kadar Omega-3 dan protein lebih tinggi dibandingkan ikan impor, sangat baik untuk pertumbuhan linear otak dan tulang.</em></p>
+          </div>
+
+          <!-- Kartu Menu 3: Daging Sapi Cincang & Brokoli -->
+          <div class="recipe-card">
+            <div class="recipe-badge" style="background:#fef2f2; color:#991b1b;">Asam Amino Esensial</div>
+            <div class="recipe-header">
+              <span class="recipe-emoji">🥩</span>
+              <div>
+                <h4>Puree Nasi Daging Sapi & Mentega</h4>
+                <p class="recipe-sub">Usia 6 - 12 Bulan • Booster Berat Badan</p>
+              </div>
+            </div>
+            <div class="recipe-nutri-pills">
+              <span class="pill-nutri">Kalori: 190 kkal</span>
+              <span class="pill-nutri">Protein: 9.8 g</span>
+              <span class="pill-nutri">Lemak: 7.5 g</span>
+            </div>
+            <p class="recipe-desc"><strong>Bahan:</strong> 35g daging sapi cincang halus, 1 sdm unsalted butter / minyak kanola, kentang tumbuk, dan wortel.</p>
+            <p class="recipe-tip">💡 <em>Lemak tambahan dari mentega memberikan densitas energi tinggi bagi balita dengan berat badan kurang (underweight).</em></p>
+          </div>
+
+          <!-- Kartu Menu 4: Snack Padat Kalori -->
+          <div class="recipe-card">
+            <div class="recipe-badge" style="background:#f0fdf4; color:#166534;">Snack Padat Energi</div>
+            <div class="recipe-header">
+              <span class="recipe-emoji">🥑</span>
+              <div>
+                <h4>Puding Alpukat Keju & Pisang</h4>
+                <p class="recipe-sub">Selingan Sore • Rasa Disukai Anak</p>
+              </div>
+            </div>
+            <div class="recipe-nutri-pills">
+              <span class="pill-nutri">Kalori: 130 kkal</span>
+              <span class="pill-nutri">Protein: 4.5 g</span>
+              <span class="pill-nutri">Kalsium: 85 mg</span>
+            </div>
+            <p class="recipe-desc"><strong>Bahan:</strong> 1/2 buah alpukat mentega matang, 1 sdm keju parut lembut, 1/2 buah pisang ambon, susu UHT/ASI secukupnya.</p>
+            <p class="recipe-tip">💡 <em>Snack bergizi di sela makan utama menjaga asupan kalori harian balita tetap surplus untuk kejar tumbuh (catch-up growth).</em></p>
+          </div>
+        </div>
+
+        <!-- Kalkulator Interaktif Kebutuhan Protein & Kalori Balita -->
+        <div class="nutrition-calculator-box">
+          <div class="calc-header">
+            <h3>🧮 Kalkulator Kebutuhan Protein Harian Balita</h3>
+            <p>Hitung target asupan protein harian sesuai berat badan dan usia balita Anda.</p>
+          </div>
+          <div class="calc-form-row">
+            <div class="input-group">
+              <label>Berat Badan Balita (kg)</label>
+              <input type="number" id="calc-child-weight" step="0.1" min="3" max="25" placeholder="Contoh: 9.8" oninput="calculateNutritionNeeds()">
+            </div>
+            <div class="input-group">
+              <label>Usia Balita (Bulan)</label>
+              <input type="number" id="calc-child-age" min="6" max="60" placeholder="Contoh: 18" oninput="calculateNutritionNeeds()">
+            </div>
+          </div>
+          <div class="calc-results-grid">
+            <div class="calc-res-card">
+              <span class="res-num" id="res-protein-target">14.7 g</span>
+              <span class="res-label">Target Protein / Hari (1.5g / kg BB)</span>
+            </div>
+            <div class="calc-res-card">
+              <span class="res-num" id="res-egg-target">2 Butir Telur</span>
+              <span class="res-label">Atau 60g Ikan / Daging / Hari</span>
+            </div>
+            <div class="calc-res-card">
+              <span class="res-num" id="res-calorie-target">850 - 950 kkal</span>
+              <span class="res-label">Total Energi Kalori Harian</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi Bawah -->
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">← Kembali ke Menu Utama</button>
+          <button class="btn-primary-gradient" onclick="navigateTo('consultation')">Tanya Dokter Spesialis Anak 🩺</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== SCREEN 10: KONSULTASI TELEMEDISIN DOKTER SPESIALIS ANAK ==================== -->
+    <section class="screen" id="screen-consultation">
+      <div class="feature-screen-container">
+        <!-- Top Navigation Bar dengan Tombol Kembali -->
+        <div class="feature-top-nav">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">
+            ← Kembali ke Menu Utama
+          </button>
+          <div class="feature-nav-badge badge-blue">
+            🩺 Konsultasi Dokter Spesialis Anak
+          </div>
+        </div>
+
+        <div class="consultation-layout">
+          <!-- Kolom Kiri: Profil Dokter Spesialis Anak -->
+          <div class="doctor-profile-card">
+            <div class="doc-avatar-large">👨‍⚕️</div>
+            <h3>dr. Farhan Malik, Sp.A (K)</h3>
+            <p class="doc-specialty">Dokter Spesialis Anak - Konsultan Nutrisi & Penyakit Metabolik Anak</p>
+            <div class="doc-status-badge">
+              <span class="status-dot-green"></span> Online Realtime (Aktif Melayani)
+            </div>
+            <div class="doc-meta-info">
+              <div>🏥 RS Hermina & Tim Satgas Stunting</div>
+              <div>⭐ Rating: 4.9/5.0 (340+ Pasien)</div>
+              <div>⚡ Respon Cepat: < 5 Menit</div>
+            </div>
+            <div style="margin-top: 16px;">
+              <a href="https://wa.me/6281234567890?text=Halo%20Dokter%20Farhan%20Sp.A%2C%20saya%20ingin%20berkonsultasi%20terkait%20hasil%20deteksi%20stunting%20balita%20saya." target="_blank" class="btn-whatsapp-direct">
+                💬 Chat Langsung via WhatsApp
+              </a>
+            </div>
+            <div style="margin-top: 14px; font-size: 11.5px; color: #64748b; line-height: 1.4;">
+              Riwayat kurva WHO KMS dan foto YOLO scan anak Anda akan otomatis dilampirkan dalam ringkasan medis untuk dokter.
+            </div>
+          </div>
+
+          <!-- Kolom Kanan: Chat Konsultasi Interaktif In-App -->
+          <div class="chat-consultation-container">
+            <div class="chat-header-bar">
+              <div>
+                <strong>Ruang Konsultasi Dokter & Orang Tua</strong>
+                <div style="font-size: 11px; color: #10b981;">● Terhubung dengan Dokter Spesialis Anak</div>
+              </div>
+              <span class="badge-pill" style="background:#e0f2fe; color:#0369a1;">Terintegrasi AI Triase</span>
+            </div>
+
+            <!-- Area Riwayat Pesan Chat -->
+            <div class="chat-messages-scroll" id="chat-messages-container">
+              <div class="chat-msg doc-msg">
+                <div class="msg-sender">dr. Farhan Malik, Sp.A (K)</div>
+                <div class="msg-bubble">
+                  Halo Ayah/Bunda! Saya telah melihat grafik pertumbuhan anak Anda di StuntingGuard AI. Ada yang bisa saya bantu diskusikan mengenai asupan gizi, kenaikan berat badan, atau tinggi badannya?
+                </div>
+                <div class="msg-time">Hari ini 14:30</div>
+              </div>
+
+              <div class="chat-msg parent-msg">
+                <div class="msg-sender">Bunda Rayyan</div>
+                <div class="msg-bubble">
+                  Selamat siang Dokter, anak saya usia 18 bulan hasil scan YOLO kemarin TB 76.5 cm (Z-score -2.12 SD). Apakah anak saya perlu suplementasi tambahan dok?
+                </div>
+                <div class="msg-time">Hari ini 14:32</div>
+              </div>
+
+              <div class="chat-msg doc-msg">
+                <div class="msg-sender">dr. Farhan Malik, Sp.A (K)</div>
+                <div class="msg-bubble">
+                  Baik Bunda, Z-score -2.12 SD menunjukkan stunting ringan. Kunci utamanya adalah booster protein hewani 2 butir telur per hari dan hati ayam/daging sapi, serta zat besi tetes. Pastikan tidak ada infeksi berulang ya Bun.
+                </div>
+                <div class="msg-time">Hari ini 14:35</div>
+              </div>
+            </div>
+
+            <!-- Input Pengiriman Pesan Chat -->
+            <div class="chat-input-bar">
+              <input type="text" id="consult-chat-input" placeholder="Tuliskan pertanyaan Anda untuk dokter..." onkeydown="if(event.key==='Enter') sendConsultationMessage()">
+              <button class="btn-send-chat" onclick="sendConsultationMessage()">
+                Kirim Pesan ✈️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tombol Kembali Bawah -->
+        <div style="margin-top: 20px; display: flex; justify-content: flex-start;">
+          <button class="btn-scan-back" onclick="navigateTo('parent')">← Kembali ke Menu Utama</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== MODAL KONFIRMASI HAPUS DATA KUSTOM (ADMIN & DOKTER) ==================== -->
+  <div class="modal-overlay" id="modal-confirm-delete">
+    <div class="modal-dialog" style="max-width: 440px;">
+      <div class="modal-header" style="background: #fef2f2; border-bottom: 1px solid #fee2e2;">
+        <h3 style="color: #991b1b; display: flex; align-items: center; gap: 8px;">
+          <span>⚠️</span> Konfirmasi Hapus Data
+        </h3>
+        <button class="modal-close" onclick="closeConfirmDeleteModal()">✕</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <p id="confirm-delete-message" style="font-size: 14px; color: #1e293b; line-height: 1.5; margin: 0 0 12px 0;">
+          Apakah Anda yakin ingin menghapus data ini dari database realtime?
+        </p>
+        <div id="confirm-delete-details" style="background: #fff1f2; border: 1px solid #fecdd3; border-radius: 8px; padding: 10px 12px; font-size: 12px; color: #881337;">
+          <!-- Detail item dynamically populated -->
+        </div>
+        <p style="font-size: 11.5px; color: #dc2626; font-style: italic; margin-top: 10px;">
+          Tindakan ini tidak dapat dibatalkan. Data akan terhapus dari sistem realtime.
+        </p>
+      </div>
+      <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+        <button class="btn-secondary" onclick="closeConfirmDeleteModal()">Batal</button>
+        <button class="btn-action-delete" style="padding: 9px 18px; font-size: 13px;" onclick="executeConfirmDelete()">
+          🗑️ Ya, Hapus Data Sekarang
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL NOTIFIKASI REALTIME ==================== -->
+  <div class="modal-overlay" id="modal-notifs">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>🔔 Pusat Notifikasi Realtime</h3>
+        <button class="modal-close" onclick="toggleNotificationsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="notif-modal-list" id="notif-list-container">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="markAllNotifsAsRead()">Tandai Semua Sudah Dibaca</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL BROADCAST NOTIFIKASI (ADMIN) ==================== -->
+  <div class="modal-overlay" id="modal-broadcast">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>📢 Siarkan Notifikasi ke Semua Orang Tua</h3>
+        <button class="modal-close" onclick="closeBroadcastModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Judul Pengumuman</label>
+          <input type="text" id="broadcast-title" placeholder="Contoh: Pengingat Penimbangan Posyandu">
+        </div>
+        <div class="input-group">
+          <label>Isi Pesan Notifikasi</label>
+          <textarea id="broadcast-msg" rows="4" placeholder="Tulis pesan pengumuman untuk seluruh orang tua balita..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeBroadcastModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitBroadcastNotification()">Siarkan Sekarang</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL VERIFIKASI DOKTER ==================== -->
+  <div class="modal-overlay" id="modal-doctor-verify">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>👨‍⚕️ Verifikasi Medis & Resep Gizi</h3>
+        <button class="modal-close" onclick="closeDoctorVerifyModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="doctor-verify-patient-summary" class="patient-summary-box"></div>
+        <div class="input-group">
+          <label>Catatan Observasi Klinis Dokter</label>
+          <textarea id="doc-verify-notes" rows="3">Hasil deteksi konsisten dengan kurva stunting ringan WHO. Rekomendasikan peningkatan protein hewani, suplementasi zat besi & evaluasi 14 hari.</textarea>
+        </div>
+        <div class="input-group">
+          <label>Keputusan Medis</label>
+          <select id="doc-verify-status">
+            <option value="approved">✅ Setujui & Berikan Resep Intervensi</option>
+            <option value="revision">⚠️ Rekomendasikan Pengukuran Ulang di Posyandu</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeDoctorVerifyModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitDoctorValidation()">Kirim Validasi ke Orang Tua</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TAMBAH DATA PASIEN (DOKTER) ==================== -->
+  <div class="modal-overlay" id="modal-add-patient">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>👨‍⚕️ Tambah Data Pasien Pemeriksaan Baru</h3>
+        <button class="modal-close" onclick="closeAddPatientModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Nama Pasien Balita *</label>
+          <input type="text" id="doc-new-child-name" placeholder="Contoh: Bilal Al-Fatih" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Usia (Bulan) *</label>
+            <input type="number" id="doc-new-age" min="0" max="60" placeholder="Contoh: 14" required>
+          </div>
+          <div class="input-group">
+            <label>Jenis Kelamin</label>
+            <select id="doc-new-gender">
+              <option value="L">👦 Laki-laki</option>
+              <option value="P">👧 Perempuan</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Tinggi Badan (cm) *</label>
+            <input type="number" step="0.1" id="doc-new-height" placeholder="Contoh: 73.5" required>
+          </div>
+          <div class="input-group">
+            <label>Berat Badan (kg) *</label>
+            <input type="number" step="0.1" id="doc-new-weight" placeholder="Contoh: 8.8" required>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Status Deteksi Stunting</label>
+          <select id="doc-new-status">
+            <option value="stunted">Pendek / Stunting (-2 s.d -3 SD)</option>
+            <option value="severe">Sangat Pendek / Stunting Berat (&lt; -3 SD)</option>
+            <option value="normal">Normal / Gizi Baik (-2 s.d +2 SD)</option>
+            <option value="tall">Tinggi (&gt; +2 SD)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Catatan Resep / Observasi Dokter</label>
+          <textarea id="doc-new-notes" rows="2" placeholder="Catatan resep, suplemen zat besi, dan arahan gizi..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddPatientModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitAddPatient()">+ Simpan ke Realtime DB</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EDIT DATA PEMERIKSAAN (DOKTER) ==================== -->
+  <div class="modal-overlay" id="modal-edit-detection">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>✏️ Edit Data Pemeriksaan Pasien Realtime</h3>
+        <button class="modal-close" onclick="closeEditDetectionModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-det-id">
+        <div class="input-group">
+          <label>Nama Pasien Balita</label>
+          <input type="text" id="edit-det-name" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Usia (Bulan)</label>
+            <input type="number" id="edit-det-age" required>
+          </div>
+          <div class="input-group">
+            <label>Tinggi Badan (cm)</label>
+            <input type="number" step="0.1" id="edit-det-height" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Berat Badan (kg)</label>
+            <input type="number" step="0.1" id="edit-det-weight" required>
+          </div>
+          <div class="input-group">
+            <label>Z-Score (HAZ SD)</label>
+            <input type="number" step="0.01" id="edit-det-haz" required>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Status Klasifikasi Stunting</label>
+          <select id="edit-det-status">
+            <option value="stunted">Pendek / Stunting</option>
+            <option value="severe">Sangat Pendek / Stunting Berat</option>
+            <option value="normal">Normal</option>
+            <option value="tall">Tinggi</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Catatan Klinis Dokter</label>
+          <textarea id="edit-det-notes" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeEditDetectionModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitEditDetection()">Perbarui Data Realtime</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TAMBAH DATA BALITA (ADMIN) ==================== -->
+  <div class="modal-overlay" id="modal-add-child">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>🏛️ Tambah Data Balita Baru ke Sistem</h3>
+        <button class="modal-close" onclick="closeAddChildModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Nama Lengkap Balita *</label>
+          <input type="text" id="adm-new-name" placeholder="Nama balita" required>
+        </div>
+        <div class="input-group">
+          <label>Nomor Induk Kependudukan (NIK) *</label>
+          <input type="text" id="adm-new-nik" placeholder="320128xxxxxxxxxx" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Jenis Kelamin</label>
+            <select id="adm-new-gender">
+              <option value="L">👦 Laki-laki</option>
+              <option value="P">👧 Perempuan</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Tanggal Lahir</label>
+            <input type="date" id="adm-new-dob" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Nama Orang Tua / Wali *</label>
+            <input type="text" id="adm-new-parent" placeholder="Nama orang tua" required>
+          </div>
+          <div class="input-group">
+            <label>No. WhatsApp / HP Orang Tua *</label>
+            <input type="tel" id="adm-new-phone" placeholder="08xxxxxxxxxx" required>
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Posyandu Terdaftar</label>
+          <input type="text" id="adm-new-posyandu" placeholder="Nama Posyandu / Puskesmas">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddChildModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitAddChild()">+ Simpan ke Database</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EDIT DATA BALITA (ADMIN) ==================== -->
+  <div class="modal-overlay" id="modal-edit-child">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>✏️ Edit Data Balita & Posyandu Realtime</h3>
+        <button class="modal-close" onclick="closeEditChildModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="adm-edit-id">
+        <div class="input-group">
+          <label>Nama Lengkap Balita</label>
+          <input type="text" id="adm-edit-name" required>
+        </div>
+        <div class="input-group">
+          <label>NIK</label>
+          <input type="text" id="adm-edit-nik" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Jenis Kelamin</label>
+            <select id="adm-edit-gender">
+              <option value="L">👦 Laki-laki</option>
+              <option value="P">👧 Perempuan</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Posyandu</label>
+            <input type="text" id="adm-edit-posyandu" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Nama Orang Tua</label>
+            <input type="text" id="adm-edit-parent" required>
+          </div>
+          <div class="input-group">
+            <label>No. WhatsApp / HP</label>
+            <input type="tel" id="adm-edit-phone" required>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeEditChildModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitEditChild()">Simpan Pembaruan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL TAMBAH DATA PAKAR / DOKTER AHLI (ADMIN) ==================== -->
+  <div class="modal-overlay" id="modal-add-doctor">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>👨‍⚕️ Tambah Data Pakar Ahli / Dokter Spesialis</h3>
+        <button class="modal-close" onclick="closeAddDoctorModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="input-group">
+          <label>Nama Lengkap & Gelar Medis/Akademik *</label>
+          <input type="text" id="doc-add-name" placeholder="Contoh: Dr. dr. Farhan Malik, Sp.A (K)" required>
+        </div>
+        <div class="input-group">
+          <label>Peran Akademik / Jabatan Pakar *</label>
+          <input type="text" id="doc-add-title" placeholder="Contoh: Pakar Ahli Pediatri & Dokter Spesialis Anak" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>NIDN / NIP Pakar</label>
+            <input type="text" id="doc-add-nidn" placeholder="0012058501">
+          </div>
+          <div class="input-group">
+            <label>Nomor SIP Dokter *</label>
+            <input type="text" id="doc-add-sip" placeholder="SIP.440/129/DINKES/2024" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Bidang Spesialisasi & Keahlian *</label>
+            <input type="text" id="doc-add-spec" placeholder="Nutrisi & Penyakit Metabolik Anak" required>
+          </div>
+          <div class="input-group">
+            <label>Institusi / Universitas / RS *</label>
+            <input type="text" id="doc-add-inst" placeholder="FK UI / RS Hermina" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>No. WhatsApp / HP Terdaftar *</label>
+            <input type="tel" id="doc-add-phone" placeholder="Contoh: 081198765432" required>
+          </div>
+          <div class="input-group">
+            <label>Password Akun</label>
+            <input type="password" id="doc-add-password" placeholder="Minimal 6 karakter (Default: 123456)">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeAddDoctorModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitAddDoctor()">+ Simpan Data Pakar Baru</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL EDIT DATA PAKAR / DOKTER AHLI ==================== -->
+  <div class="modal-overlay" id="modal-edit-doctor">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3>✏️ Edit Data Pakar Ahli / Dokter Spesialis</h3>
+        <button class="modal-close" onclick="closeEditDoctorModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="doc-edit-id">
+        <div class="input-group">
+          <label>Nama Lengkap & Gelar Medis/Akademik *</label>
+          <input type="text" id="doc-edit-name" required>
+        </div>
+        <div class="input-group">
+          <label>Peran Akademik / Jabatan Pakar *</label>
+          <input type="text" id="doc-edit-title" required>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>NIDN / NIP Pakar</label>
+            <input type="text" id="doc-edit-nidn">
+          </div>
+          <div class="input-group">
+            <label>Nomor SIP Dokter</label>
+            <input type="text" id="doc-edit-sip" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>Bidang Spesialisasi & Keahlian</label>
+            <input type="text" id="doc-edit-spec" required>
+          </div>
+          <div class="input-group">
+            <label>Institusi / Universitas / RS</label>
+            <input type="text" id="doc-edit-inst" required>
+          </div>
+        </div>
+        <div class="form-row-2">
+          <div class="input-group">
+            <label>No. WhatsApp / HP Terdaftar (Akun Login)</label>
+            <input type="tel" id="doc-edit-phone" required>
+          </div>
+          <div class="input-group">
+            <label>Status Tenaga Pakar</label>
+            <select id="doc-edit-status">
+              <option value="Aktif">🟢 Aktif Melayani</option>
+              <option value="Cuti">🟡 Cuti / Sedang Riset</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeEditDoctorModal()">Batal</button>
+        <button class="btn-primary-gradient" onclick="submitEditDoctor()">Simpan Perubahan Realtime</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL BUKA & KELOLA FILE DATABASE SUPABASE ==================== -->
+  <div class="modal-overlay" id="modal-database-editor">
+    <div class="modal-dialog" style="max-width: 860px; width: 95%;">
+      <div class="modal-header">
+        <div>
+          <h3>⚡ Manajemen Database Supabase (Cloud PostgreSQL)</h3>
+          <p style="font-size: 11px; color: #64748b; margin: 2px 0 0 0;">
+            Status Realtime: <span id="supabase-status-badge" style="background:#10b981; color:white; padding:2px 8px; border-radius:12px; font-weight:bold;">● Terhubung ke Supabase</span>
+          </p>
+        </div>
+        <button class="modal-close" onclick="closeDatabaseEditorModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <!-- Sub-tabs Supabase -->
+        <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+          <button class="q-filter active" id="tab-btn-sp-config" onclick="switchDbModalTab('config')">⚙️ Kredensial & Status</button>
+          <button class="q-filter" id="tab-btn-sp-sql" onclick="switchDbModalTab('sql')">📜 Skema Tabel SQL</button>
+          <button class="q-filter" id="tab-btn-sp-json" onclick="switchDbModalTab('json')">📄 Backup / Edit Data JSON</button>
+        </div>
+
+        <!-- TAB 1: KREDENSIAL & STATUS SUPABASE -->
+        <div id="tab-content-sp-config">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:14px;">
+            <h4 style="margin:0 0 6px 0; color:#0f172a;">Koneksi Proyek Supabase Anda</h4>
+            <p style="font-size:12px; color:#64748b; margin:0 0 12px 0;">
+              Masukkan Project URL dan Anon Public Key dari Dashboard Supabase Anda (Project Settings -> API).
+            </p>
+            <div class="input-group">
+              <label>Supabase Project URL</label>
+              <input type="text" id="supabase-input-url" placeholder="https://your-project.supabase.co">
+            </div>
+            <div class="input-group">
+              <label>Supabase Anon Public API Key</label>
+              <input type="text" id="supabase-input-key" placeholder="eyJh...">
+            </div>
+            <button class="btn-primary-gradient" onclick="testAndSaveSupabaseConfig()">
+              ⚡ Simpan & Uji Koneksi Supabase
+            </button>
+          </div>
+          <div style="background:#eff6ff; border:1px solid #bfdbfe; border-radius:10px; padding:12px; font-size:12px; color:#1e40af; line-height:1.5;">
+            📌 <strong>Tabel Realtime yang Digunakan:</strong><br>
+            • <code>children</code>: Data balita, NIK, orang tua, posyandu.<br>
+            • <code>stunting_detections</code>: Rekam medis hasil scan YOLO, Z-Score WHO HAZ/WAZ, validasi dokter.<br>
+            • <code>notifications</code>: Broadcast pengumuman posyandu & peringatan dini stunting.<br>
+            • <code>registered_users</code>: Akun nomor WhatsApp orang tua, dokter, dan admin.
+          </div>
+        </div>
+
+        <!-- TAB 2: SKEMA SQL SUPABASE -->
+        <div id="tab-content-sp-sql" style="display:none;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:12px; color:#64748b;">Jalankan skrip ini di <strong>Supabase Dashboard -> SQL Editor</strong>:</span>
+            <button class="btn-secondary" style="font-size:11px; padding:4px 10px;" onclick="copySqlSchema()">📋 Salin SQL Skema</button>
+          </div>
+          <textarea id="supabase-sql-textarea" rows="14" readonly style="font-family:'Courier New', monospace; font-size:11.5px; line-height:1.4; background:#0f172a; color:#38bdf8; padding:12px; border-radius:10px; border:1px solid #334155; width:100%; box-sizing:border-box;"></textarea>
+        </div>
+
+        <!-- TAB 3: BACKUP / EDIT DATA JSON -->
+        <div id="tab-content-sp-json" style="display:none;">
+          <div style="font-size:12px; color:#64748b; margin-bottom:8px;">
+            File JSON Lokal: <code>data/stunting_database.json</code> (Dapat diedit langsung atau diunduh sebagai cadangan).
+          </div>
+          <textarea id="db-json-textarea" rows="14" style="font-family:'Courier New', monospace; font-size:11.5px; line-height:1.4; background:#0f172a; color:#a7f3d0; padding:12px; border-radius:10px; border:1px solid #334155; width:100%; box-sizing:border-box;"></textarea>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button class="btn-secondary" onclick="downloadDatabaseJson()">📥 Unduh JSON</button>
+            <button class="btn-primary-gradient" onclick="saveDatabaseJson()">💾 Simpan ke Database</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <span style="font-size:11px; color:#64748b; align-self:center;">File SQL: <code>data/supabase_schema.sql</code></span>
+        <button class="btn-secondary" onclick="closeDatabaseEditorModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- SUPABASE JS SDK CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="app.js"></script>
+</body>
+</html>

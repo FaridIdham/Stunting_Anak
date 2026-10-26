@@ -1,0 +1,34 @@
+{
+  "system_info": {
+    "app_name": "StuntingGuard AI",
+    "version": "2.4.0",
+    "description": "Database Realtime Deteksi Stunting Anak berbasis YOLO & WHO LMS (Kondisi Kosong / Clean Slate)",
+    "last_updated": "2026-10-26T11:00:00Z",
+    "status": "database_cleared"
+  },
+  "registered_users": [
+    {
+      "uid": "DOC-01",
+      "phone": "081198765432",
+      "name": "dr. Farhan Malik, Sp.A (K)",
+      "email": "dr.farhan@rumahsakit.id",
+      "role": "expert",
+      "specialization": "Dokter Spesialis Anak - Konsultan Nutrisi & Metabolik",
+      "sip_number": "SIP.440/129/DINKES/2024",
+      "created_at": "2026-08-15T09:00:00Z"
+    },
+    {
+      "uid": "ADM-01",
+      "phone": "081388776655",
+      "name": "Administrator Dinas Kesehatan",
+      "email": "admin@dinkes.go.id",
+      "role": "admin",
+      "assigned_region": "Pusat Pengendalian Stunting Terpadu Nasional",
+      "created_at": "2026-07-01T10:00:00Z"
+    }
+  ],
+  "children": [],
+  "stunting_detections": [],
+  "notifications": [],
+  "posyandu_centers": []
+}

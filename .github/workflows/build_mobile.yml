@@ -1,0 +1,82 @@
+name: Build Android APK and iOS IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch: # Memungkinkan tombol 'Run workflow' manual di GitHub
+
+jobs:
+  build-android:
+    name: 🤖 Build Android Release APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: 🎯 Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🔨 Compile Release APK
+        run: flutter build apk --release
+
+      - name: 📤 Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StuntingGuard_AI_Android_APK
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+
+  build-ios:
+    name: 🍏 Build iOS IPA
+    runs-on: macos-latest
+    steps:
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+          cache: true
+
+      - name: 📦 Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: 🍏 Install CocoaPods
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      - name: 🔨 Build iOS Archive & IPA
+        run: |
+          flutter build ipa --no-codesign --release
+          mkdir -p build/ios/ipa/Payload
+          cp -r build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r StuntingGuard_AI.ipa Payload
+          rm -rf Payload
+
+      - name: 📤 Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: StuntingGuard_AI_iOS_IPA
+          path: build/ios/ipa/StuntingGuard_AI.ipa
+          if-no-files-found: error
