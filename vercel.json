@@ -1,6 +1,15 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "outputDirectory": "web_app"
+  "version": 2,
+  "builds": [
+    {
+      "src": "web_app/**",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/web_app/$1"
+    }
+  ]
 }
